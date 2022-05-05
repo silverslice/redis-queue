@@ -1,0 +1,23 @@
+{
+    "name": "silverslice/redis-queue",
+    "description": "Redis queue",
+    "keywords": ["queue", "redis", "stream"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Igor Mikheev",
+            "email": "silver_slice@mail.ru"
+        }
+    ],
+    "require": {
+        "php": ">=7.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Silverslice\\RedisQueue\\": ""
+        },
+        "exclude-from-classmap": [
+            "/Tests/"
+        ]
+    }
+}
