@@ -4,6 +4,9 @@ namespace Silverslice\RedisQueue;
 
 class Worker
 {
+    /** @var int Time to wait for new messages (BLOCK in Redis), in milliseconds */
+    public $blockTimeout = 5000;
+
     /** @var Connection Connection */
     protected $connection;
     protected $queue;
@@ -28,7 +31,7 @@ class Worker
         $this->registerSignalHandler();
 
         while (!$this->shouldExit) {
-            $data = $this->connection->get(6000);
+            $data = $this->connection->get($this->blockTimeout);
             if ($data) {
                 $this->handle($data);
             } else {
@@ -43,7 +46,7 @@ class Worker
      *
      * @param callable $callback
      */
-    public function setFailedCallback(callable $callback): void
+    public function onFail(callable $callback): void
     {
         $this->failedCallback = $callback;
     }
@@ -82,8 +85,12 @@ class Worker
 
         $data = json_decode($message['message'], true);
 
-        /** @var AbstractJob $job */
+        /** @var AbstractJob|false $job */
         $job = unserialize($data['job']);
+        if ($job === false) {
+            $this->debug('Unable to serialize job: ' . $data['job']);
+            return;
+        }
         $headers = $data['headers'];
         $retries = $headers['retries'] ?? 0;
 
@@ -98,8 +105,9 @@ class Worker
             $this->connection->ack($message['id']);
             $retries = $retries + 1;
             if ($job->isRetryable($retries)) {
-                $this->debug("Job failed. Redeliver, retry $retries");
-                $this->queue->push($job, ['retries' => $retries]);
+                $delay = $job->getRetryDelay($retries);
+                $this->debug("Job failed. Redeliver with delay $delay, retry $retries");
+                $this->queue->pushWithDelay($job, $delay, false, ['retries' => $retries]);
             } else { // not retryable
                 $this->debug('Job failed. Not retryable, reject');
 

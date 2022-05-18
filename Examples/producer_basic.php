@@ -2,8 +2,7 @@
 
 use Silverslice\RedisQueue\Connection;
 use Silverslice\RedisQueue\Queue;
-use Silverslice\RedisQueue\Tests\Jobs\FatalJob;
-use Silverslice\RedisQueue\Tests\Jobs\TestJob;
+use Silverslice\RedisQueue\Examples\Jobs\TestJob;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
@@ -12,15 +11,16 @@ $queue = new Queue($conn);
 
 $n = 4;
 for ($i = 1; $i <= $n; $i++) {
+    $job = new TestJob();
     if ($i === 3) {
-        $job = new FatalJob();
-        //$job = new TestJob();
-        //$job->isFailed = true;
+        $job->isFailed = true;
+        $job->message = 'My message ' . $i . ', failed';
     } else {
-        $job = new TestJob();
+        $job->message = 'My message ' . $i;
     }
-    $job->message = 'my message' . $i;
-
 
     $queue->push($job);
 }
+
+$date = date('Y-m-d H:i:s');
+echo "[$date] $n messages sent\n";

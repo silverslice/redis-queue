@@ -17,7 +17,7 @@
             "Silverslice\\RedisQueue\\": ""
         },
         "exclude-from-classmap": [
-            "/Tests/"
+            "/Examples/"
         ]
     }
 }

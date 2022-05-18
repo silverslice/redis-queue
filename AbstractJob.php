@@ -16,4 +16,15 @@ abstract class AbstractJob
     {
         return $retries <= 5;
     }
+
+    /**
+     * Returns retry delay in seconds
+     *
+     * @param $retries
+     * @return int
+     */
+    public function getRetryDelay($retries): int
+    {
+        return 1 * 2 ** ($retries - 1);
+    }
 }

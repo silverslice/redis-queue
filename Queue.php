@@ -20,4 +20,16 @@ class Queue
         ];
         $this->connection->add(json_encode($msg));
     }
+
+    public function pushWithDelay(AbstractJob $job, $delayInSeconds, $overwrite = false, $headers = [])
+    {
+        $msg = [
+            'job' => serialize($job),
+            'headers' => $headers,
+        ];
+        if (!$overwrite) {
+            $msg['id'] = uniqid();
+        }
+        $this->connection->addWithDelay(json_encode($msg), $delayInSeconds);
+    }
 }

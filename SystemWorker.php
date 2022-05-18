@@ -9,6 +9,20 @@ class SystemWorker
      */
     public $maxFailures = 3;
 
+    /**
+     * @var int Interval by which pending messages should be checked, in seconds
+     */
+    public $checkPendingInterval = 10;
+
+    /**
+     * @var int Pause after each loop in microseconds
+     */
+    public $sleepInterval = 100000;
+
+    /** @var int Timeout before redeliver messages still in pending state, in seconds */
+    public $pendingIdle = 9;
+
+
     /** @var Connection Connection */
     protected $connection;
 
@@ -30,9 +44,17 @@ class SystemWorker
 
         $this->registerSignalHandler();
 
+        $nextPending = 0;
         while (!$this->shouldExit) {
-            $this->checkPending();
-            sleep(5);
+            $now = time();
+            $this->checkDelayed();
+
+            if ($now >= $nextPending) {
+                $nextPending = $now + $this->checkPendingInterval;
+                $this->checkPending();
+            }
+
+            usleep($this->sleepInterval);
         }
     }
 
@@ -42,7 +64,7 @@ class SystemWorker
      *
      * @param callable $callback
      */
-    public function setFailedCallback(callable $callback): void
+    public function onFail(callable $callback): void
     {
         $this->failedCallback = $callback;
     }
@@ -64,8 +86,9 @@ class SystemWorker
      */
     protected function checkPending(): void
     {
+        $this->debug('Check pending messages');
         // get pending messages
-        $pending = $this->connection->pending(100, 9000);
+        $pending = $this->connection->pending(100, $this->pendingIdle * 1000);
         if ($pending) {
             foreach ($pending as $element) {
                 $this->debug('Pending message id: ' . $element[0]);
@@ -102,6 +125,16 @@ class SystemWorker
             }
         } else {
             $this->debug('No pending messages');
+        }
+    }
+
+    protected function checkDelayed()
+    {
+        $messages = $this->connection->getDelayed(0, time());
+        foreach ($messages as $message) {
+            $this->connection->add($message);
+            $this->connection->removeDelayed($message);
+            $this->debug('Move delayed message: ' . $message);
         }
     }
 

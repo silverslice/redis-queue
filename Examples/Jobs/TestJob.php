@@ -1,27 +1,32 @@
 <?php
 
-namespace Silverslice\RedisQueue\Tests\Jobs;
+namespace Silverslice\RedisQueue\Examples\Jobs;
 
 use Silverslice\RedisQueue\AbstractJob;
 
-class FatalJob extends AbstractJob
+class TestJob extends AbstractJob
 {
     public $message;
+    public $isFailed = false;
 
     public function execute(): void
     {
         $this->realSleep(2);
-        die("Fatal error \n");
+        if ($this->isFailed) {
+            throw new \Exception('Job is not available');
+        } else {
+            echo $this->message . ' ' . date('H:i:s') . "\n";
+        }
     }
 
     public function isRetryable($retries): bool
     {
-        return $retries <= 5;
+        return $retries <= 4;
     }
 
     public function getRetryDelay($retries): int
     {
-        return 1000 * 2 ** ($retries - 1);
+        return 1 * 2 ** ($retries - 1);
     }
 
     protected function realSleep(int $seconds): bool

@@ -1,5 +1,6 @@
 <?php
 
+use Silverslice\RedisQueue\AbstractJob;
 use Silverslice\RedisQueue\Connection;
 use Silverslice\RedisQueue\Worker;
 
@@ -15,5 +16,9 @@ $conn = new Connection();
 $conn->consumer = $options['name'];
 $worker = new Worker($conn);
 $worker->setDebug(true);
+$worker->onFail(function (AbstractJob $job, \Throwable $e) {
+    echo '[!] Job failed: ' . serialize($job) . PHP_EOL;
+    echo '[.] Error: ' . $e->getMessage() . PHP_EOL;
+});
 $worker->run();
 

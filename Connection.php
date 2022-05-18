@@ -31,7 +31,7 @@ class Connection
         $this->connection = new \Redis();
         $this->connection->connect($this->host, $this->port);
         // creates stream automatically
-        $this->connection->xgroup('CREATE', $this->stream, $this->group, 0, true);
+        $this->connection->xGroup('CREATE', $this->stream, $this->group, 0, true);
     }
 
     /**
@@ -47,12 +47,12 @@ class Connection
 
     public function add(string $message): void
     {
-        $this->getConnection()->xadd($this->stream, '*', ['message' => $message], $this->maxLen, true);
+        $this->getConnection()->xAdd($this->stream, '*', ['message' => $message], $this->maxLen, true);
     }
 
     public function get(int $block = null): ?array
     {
-        $messages = $this->getConnection()->xreadgroup(
+        $messages = $this->getConnection()->xReadGroup(
             $this->group,
             $this->consumer,
             [$this->stream => '>'],
@@ -74,7 +74,7 @@ class Connection
 
     public function ack(string $id): int
     {
-        return $this->getConnection()->xack($this->stream, $this->group, [$id]);
+        return $this->getConnection()->xAck($this->stream, $this->group, [$id]);
     }
 
     public function pending(int $count, int $idle): array
@@ -85,6 +85,22 @@ class Connection
     public function range(string $start, string $end, int $count): array
     {
         return $this->getConnection()->xRange($this->stream, $start, $end, $count);
+    }
+
+    public function addWithDelay(string $message, int $delayInS): void
+    {
+        $score = time() + $delayInS;
+        $this->getConnection()->zAdd($this->stream . '_delayed', $score, $message);
+    }
+
+    public function getDelayed(int $start, int $end): array
+    {
+        return $this->getConnection()->rawCommand('ZRANGE', $this->stream . '_delayed', $start, $end, 'BYSCORE');
+    }
+
+    public function removeDelayed(string $message): int
+    {
+        return $this->getConnection()->zRem($this->stream . '_delayed', $message);
     }
 
     protected function getConnection(): \Redis
