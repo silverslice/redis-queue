@@ -9,9 +9,10 @@ require_once __DIR__ . '/../vendor/autoload.php';
 $conn = new Connection();
 $queue = new Queue($conn);
 
+// send message that will not be executed
 $job = new TestJob();
 $job->isFailed = true;
-$job->message = 'Failed message ';
+$job->message = 'Failed message';
 
 $queue->push($job);
 

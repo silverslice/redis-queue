@@ -10,6 +10,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 $conn = new Connection();
 $queue = new Queue($conn);
 
+// send message that crashes worker
 $job = new FatalJob();
 $job->message = 'Message with Fatal error';
 $queue->push($job);

@@ -9,6 +9,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 $conn = new Connection();
 $queue = new Queue($conn);
 
+// send n messages, message number 3 will not be executed
 $n = 4;
 for ($i = 1; $i <= $n; $i++) {
     $job = new TestJob();
