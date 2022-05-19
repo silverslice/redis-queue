@@ -9,10 +9,10 @@ class Connection
 {
     public $host = '127.0.0.1';
     public $port = 6379;
-    public $stream = 'mystream';
-    public $group = 'mygroup';
+    public $stream = 'redis-queue';
+    public $group = 'default';
     public $consumer = 'worker';
-    public $maxLen = 1000;
+    public $maxLen = 10000;
 
     /** @var \Redis */
     protected $connection;

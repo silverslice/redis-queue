@@ -10,17 +10,19 @@ class SystemWorker
     public $maxFailures = 3;
 
     /**
-     * @var int Interval by which pending messages should be checked, in seconds
+     * @var int Interval by which pending messages should be checked, in seconds.
      */
-    public $checkPendingInterval = 10;
+    public $checkPendingInterval = 60;
 
     /**
-     * @var int Pause after each loop in microseconds
+     * @var int Pause after each loop in microseconds.
      */
     public $sleepInterval = 100000;
 
-    /** @var int Timeout before redeliver messages still in pending state, in seconds */
-    public $pendingIdle = 9;
+    /**
+     * @var int Timeout before redeliver messages still in pending state, in seconds.
+     */
+    public $pendingIdle = 300;
 
 
     /** @var Connection Connection */
