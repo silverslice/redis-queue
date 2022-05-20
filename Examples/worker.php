@@ -6,6 +6,7 @@ use Silverslice\RedisQueue\Worker;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+// each consumer in stream need unique name, so we pass name as argument on start worker
 $options = getopt('', ['name:']);
 if (!isset($options['name'])) {
     echo 'Usage: php worker.php --name worker_name' . PHP_EOL;
